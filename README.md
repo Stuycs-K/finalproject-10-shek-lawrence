@@ -17,11 +17,20 @@ How does the user interact with this program? (CHANGE THIS!!!!!)
 #### in game:
 To load a schematic: 
 
-`//schem load [filename] mcedit`
+`//schem load [filename]`
 
 Paste into world:
 
 `//paste` 
+
+Copy a selection of blocks (to save):
+
+`//copy`
+
+
+Save blocks to a schematic:
+
+`//schem save [filename] -f`
 
 ### Resources/ References:
 
