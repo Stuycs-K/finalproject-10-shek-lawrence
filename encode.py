@@ -2,7 +2,7 @@ import mcschematic
 import nbtlib 
 
 SCHEMATICS_FOLDER = "/mnt/c/Users/lawre/AppData/Roaming/.minecraft/config/worldedit/schematics/"
-
+OUTPUT_FILE = "decrypted.txt"
 
 BYTES_TO_BLOCKS = ["minecraft:white_wool",
                    "minecraft:light_gray_wool",
@@ -26,7 +26,7 @@ BLOCKS_TO_BYTES =  {block: i for i, block in enumerate(BYTES_TO_BLOCKS)}
 
 def main():
     build_schematic("test.txt")
-    decoded_bytes = decode_schematic(SCHEMATICS_FOLDER + "encoded.schem")
+    decode_schematic(SCHEMATICS_FOLDER + "encoded.schem")
     # with open("decrypted.txt", "wb") as f:
         # f.write(decoded_bytes)
 
@@ -62,12 +62,22 @@ def decode_schematic(filepath):
     data = schem['Schematic']['Blocks']['Data']
     
     index_to_block = {v: k for k, v in palette.items()}
-    ordered_blocks = [index_to_block[byte] for byte in data]
-    for i, block in enumerate(ordered_blocks):
-        print(f"{i}: {block}")
+
+    # convert indices to block array to byte array 
+    byte_array = []
+    for byte in data:
+        block = index_to_block[byte]
+        # not included in the file (extra blocks)
+        if block == "minecraft:air":
+            continue
+        byte_array.append(BLOCKS_TO_BYTES[block])
+    byte_array = bytes(byte_array)
+
+    with open(OUTPUT_FILE, "wb") as f:
+        f.write(byte_array)
 
 
-    return
+
 
 
 if __name__ == "__main__":
