@@ -1,5 +1,6 @@
 import mcschematic
 import nbtlib 
+import argparse 
 
 SCHEMATICS_FOLDER = "/mnt/c/Users/lawre/AppData/Roaming/.minecraft/config/worldedit/schematics/"
 OUTPUT_FILE = "decrypted.txt"
@@ -24,11 +25,28 @@ BYTES_TO_BLOCKS = ["minecraft:white_wool",
 BLOCKS_TO_BYTES =  {block: i for i, block in enumerate(BYTES_TO_BLOCKS)}
 
 
+
 def main():
-    build_schematic("test.txt")
-    decode_schematic(SCHEMATICS_FOLDER + "encoded.schem")
-    # with open("decrypted.txt", "wb") as f:
-        # f.write(decoded_bytes)
+    parser = argparse.ArgumentParser(description="Encode a file or decode a schematic file.")
+    parser.add_argument("filename", help="The name of the file to process")
+    parser.add_argument("--mode", choices=["encode", "decode"], type=str.lower, help="Mode of operation")
+    parser.add_argument("-o", "--output", help="Output file name (for decode)")
+
+    args = parser.parse_args()
+    # print("File:", args.filename)
+    # print("Mode:", args.mode)
+    # print("Output:", args.output)
+    if args.mode == "encode":
+        build_schematic(args.filename)
+    elif args.mode == "decode":
+        decode_schematic(SCHEMATICS_FOLDER + args.filename)
+    else:
+        print("invalid mode")
+        exit(1)
+
+
+
+
 
 
 def read_bytes(filename):
@@ -44,7 +62,7 @@ def read_bytes(filename):
 def build_schematic(filename):
     schem = mcschematic.MCSchematic()
     hex_digits = read_bytes(filename)
-    print(hex_digits)
+    # print(hex_digits)
     for i, digit in enumerate(hex_digits):
         x = i % 16
         z = i // 16
