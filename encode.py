@@ -44,7 +44,7 @@ def read_bytes(filename):
 def build_schematic(filename):
     schem = mcschematic.MCSchematic()
     hex_digits = read_bytes(filename)
-
+    print(hex_digits)
     for i, digit in enumerate(hex_digits):
         x = i % 16
         z = i // 16
@@ -71,6 +71,14 @@ def decode_schematic(filepath):
         if block == "minecraft:air":
             continue
         byte_array.append(BLOCKS_TO_BYTES[block])
+    
+    # convert back to byte values
+    temp = []
+    for i in range(0, len(byte_array), 2):
+        temp.append(16 * byte_array[i] + byte_array[i + 1])
+    byte_array = temp
+
+
     byte_array = bytes(byte_array)
 
     with open(OUTPUT_FILE, "wb") as f:
