@@ -3,7 +3,6 @@ import nbtlib
 import argparse 
 
 SCHEMATICS_FOLDER = "/mnt/c/Users/lawre/AppData/Roaming/.minecraft/config/worldedit/schematics/"
-OUTPUT_FILE = "decrypted.txt"
 
 BYTES_TO_BLOCKS = ["minecraft:white_wool",
                    "minecraft:light_gray_wool",
@@ -33,25 +32,31 @@ def main():
     parser.add_argument("-o", "--output", help="Output file name (for decode)")
 
     args = parser.parse_args()
-    # print("File:", args.filename)
-    # print("Mode:", args.mode)
-    # print("Output:", args.output)
     if args.mode == "encode":
-        build_schematic(args.filename)
+        if args.output is None:
+            args.output = "secret"
+        build_schematic(args.filename, args.output)
     elif args.mode == "decode":
-        decode_schematic(SCHEMATICS_FOLDER + args.filename)
+        if args.output is None:
+            args.output = "decrypted.txt"
+        decode_schematic(SCHEMATICS_FOLDER + args.filename, args.output)
     else:
         print("invalid mode")
         exit(1)
 
 
-
-
-
-
 def read_bytes(filename):
-    with open(filename, "rb") as f:
-        data = f.read()
+    try: 
+        with open(filename, "rb") as f:
+            data = f.read()
+    except FileNotFoundError:
+        print(f"Error: File '{filename}' not found.")
+        exit(1)
+    except Exception as e:
+        print(f"Error reading file '{filename}': {e}")
+        exit(1)
+
+
     hex_digits = []
     for byte in data:
         hex_digits.append(byte >> 4)     
@@ -59,7 +64,7 @@ def read_bytes(filename):
     return hex_digits
 
 
-def build_schematic(filename):
+def build_schematic(filename, schematic_name):
     schem = mcschematic.MCSchematic()
     hex_digits = read_bytes(filename)
     # print(hex_digits)
@@ -69,11 +74,19 @@ def build_schematic(filename):
         block = BYTES_TO_BLOCKS[digit]
         schem.setBlock((x, 0, z), block)
 
-    schem.save(SCHEMATICS_FOLDER, "secret", mcschematic.Version.JE_1_21_5)
+    schem.save(SCHEMATICS_FOLDER, schematic_name, mcschematic.Version.JE_1_21_5)
 
 
-def decode_schematic(filepath):
-    schem = nbtlib.load(filepath)
+def decode_schematic(filepath, output_file):
+    try:
+        schem = nbtlib.load(filepath)
+    except FileNotFoundError:
+        print(f"Error: Schematic file '{filepath}' not found.")
+        exit(1)
+    except Exception as e:
+        print(f"Error loading schematic: {e}")
+        exit(1)
+
     # palette is a dictionary that maps each block to an integer 
     palette = schem['Schematic']['Blocks']['Palette']
     # data is a byte array storing the order that the blocks are stored, using the indices in palette corresponding to the name of the block
@@ -85,10 +98,9 @@ def decode_schematic(filepath):
     byte_array = []
     for byte in data:
         block = index_to_block[byte]
-        # not included in the file (extra blocks)
-        if block == "minecraft:air":
-            continue
-        byte_array.append(BLOCKS_TO_BYTES[block])
+        # don't include extranneous blocks
+        if block in BLOCKS_TO_BYTES:
+            byte_array.append(BLOCKS_TO_BYTES[block])
     
     # convert back to byte values
     temp = []
@@ -99,7 +111,8 @@ def decode_schematic(filepath):
 
     byte_array = bytes(byte_array)
 
-    with open(OUTPUT_FILE, "wb") as f:
+
+    with open(output_file, "wb") as f:
         f.write(byte_array)
 
 
