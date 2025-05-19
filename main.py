@@ -1,6 +1,7 @@
 import mcschematic
 import nbtlib 
 import argparse 
+import math
 
 SCHEMATICS_FOLDER = "/mnt/c/Users/lawre/AppData/Roaming/.minecraft/config/worldedit/schematics/"
 
@@ -28,7 +29,7 @@ BLOCKS_TO_BYTES =  {block: i for i, block in enumerate(BYTES_TO_BLOCKS)}
 def main():
     parser = argparse.ArgumentParser(description="Encode a file or decode a schematic file.")
     parser.add_argument("filename", help="The name of the file to process")
-    parser.add_argument("--mode", choices=["encode", "decode"], type=str.lower, help="Mode of operation")
+    parser.add_argument("-m", "--mode", choices=["encode", "decode"], type=str.lower, help="Mode of operation")
     parser.add_argument("-o", "--output", help="Output file name (for decode)")
 
     args = parser.parse_args()
@@ -68,11 +69,16 @@ def build_schematic(filename, schematic_name):
     schem = mcschematic.MCSchematic()
     hex_digits = read_bytes(filename)
     # print(hex_digits)
+
+    total_blocks = len(hex_digits)
+    # round up
+    side_length = math.ceil(total_blocks ** (1 / 3))
     for i, digit in enumerate(hex_digits):
-        x = i % 16
-        z = i // 16
+        x = i % side_length
+        z = (i // side_length) % side_length
+        y = i // (side_length * side_length)
         block = BYTES_TO_BLOCKS[digit]
-        schem.setBlock((x, 0, z), block)
+        schem.setBlock((x, y, z), block)
 
     schem.save(SCHEMATICS_FOLDER, schematic_name, mcschematic.Version.JE_1_21_5)
 
