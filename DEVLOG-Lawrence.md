@@ -13,3 +13,9 @@ This document must be updated daily every time you finish a work session.
 - read blocks from the world
 - converted from blocks to bytes in original file order
 - worked on writing bytes to file, not yet working
+
+### 2025-05-18 - Decoding working
+- added command line args to specify encode/decode and output file name
+- added error checking 
+- changed mapping to 3d array of blocks instead of 2d to allow for larger file sizes 
+- files still take up a lot of space, might use more blocks to represent data (instead of just 16)
