@@ -5,23 +5,12 @@ import math
 
 SCHEMATICS_FOLDER = "/mnt/c/Users/lawre/AppData/Roaming/.minecraft/config/worldedit/schematics/"
 
-BYTES_TO_BLOCKS = ["minecraft:white_wool",
-                   "minecraft:light_gray_wool",
-                   "minecraft:gray_wool", 
-                   "minecraft:black_wool", 
-                   "minecraft:brown_wool",
-                   "minecraft:red_wool",  
-                   "minecraft:orange_wool",
-                   "minecraft:yellow_wool",
-                   "minecraft:lime_wool",
-                   "minecraft:green_wool",
-                   "minecraft:cyan_wool",
-                   "minecraft:light_blue_wool",
-                   "minecraft:blue_wool",
-                   "minecraft:purple_wool",
-                   "minecraft:magenta_wool",
-                   "minecraft:pink_wool"]
+BYTES_TO_BLOCKS = []
+with open("blocks.txt", "r") as f:
+    for i in range(256):
+        BYTES_TO_BLOCKS.append(f.readline().rstrip())
 
+    
 BLOCKS_TO_BYTES =  {block: i for i, block in enumerate(BYTES_TO_BLOCKS)}
 
 
@@ -57,22 +46,18 @@ def read_bytes(filename):
         print(f"Error reading file '{filename}': {e}")
         exit(1)
 
-
-    hex_digits = []
-    for byte in data:
-        hex_digits.append(byte >> 4)     
-        hex_digits.append(byte & 0x0F)   
-    return hex_digits
+    byte_array = [b for b in data]
+    return byte_array
 
 
 def build_schematic(filename, schematic_name):
     schem = mcschematic.MCSchematic()
-    hex_digits = read_bytes(filename)
+    byte_array = read_bytes(filename)
 
-    total_blocks = len(hex_digits)
+    total_blocks = len(byte_array)
     # round up
     side_length = math.ceil(total_blocks ** (1 / 3))
-    for i, index in enumerate(hex_digits):
+    for i, index in enumerate(byte_array):
         x = i % side_length
         z = (i // side_length) % side_length
         y = i // (side_length * side_length)
@@ -103,20 +88,13 @@ def decode_schematic(filepath, output_file):
     byte_array = []
     for byte in data:
         block = index_to_block[byte]
+        print(block)
         # don't include extranneous blocks
         if block in BLOCKS_TO_BYTES:
             byte_array.append(BLOCKS_TO_BYTES[block])
-    
-    # convert back to byte values
-    temp = []
-    for i in range(0, len(byte_array), 2):
-        temp.append(16 * byte_array[i] + byte_array[i + 1])
-    byte_array = temp
-
-
+    print(len(byte_array))
+    # print(byte_array)
     byte_array = bytes(byte_array)
-
-
     with open(output_file, "wb") as f:
         f.write(byte_array)
 
