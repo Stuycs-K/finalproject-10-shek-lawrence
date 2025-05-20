@@ -22,6 +22,9 @@ def main():
     parser.add_argument("-o", "--output", help="Output file name (for decode)")
 
     args = parser.parse_args()
+    if args.output is None:
+        print("Please specify the name of the output file")
+        exit(1)
     if args.mode == "encode":
         if args.output is None:
             args.output = "secret"
@@ -31,7 +34,7 @@ def main():
             args.output = "decrypted.txt"
         decode_schematic(SCHEMATICS_FOLDER + args.filename, args.output)
     else:
-        print("invalid mode")
+        print("Invalid mode. Please specify: '-m encode' or '-m decode'")
         exit(1)
 
 
@@ -87,13 +90,13 @@ def decode_schematic(filepath, output_file):
     # convert indices to block array to byte array 
     byte_array = []
     for byte in data:
-        block = index_to_block[byte]
-        print(block)
+        # some blocks have additional properties, such as:
+        # minecraft:brown_mushroom_block[down=true,east=true,north=true,south=true,up=true,west=true]
+        # so we can split by "[" to ignore those 
+        block = index_to_block[byte].split("[")[0]
         # don't include extranneous blocks
         if block in BLOCKS_TO_BYTES:
             byte_array.append(BLOCKS_TO_BYTES[block])
-    print(len(byte_array))
-    # print(byte_array)
     byte_array = bytes(byte_array)
     with open(output_file, "wb") as f:
         f.write(byte_array)
