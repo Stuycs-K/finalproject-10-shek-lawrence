@@ -19,3 +19,10 @@ This document must be updated daily every time you finish a work session.
 - added error checking 
 - changed mapping to 3d array of blocks instead of 2d to allow for larger file sizes 
 - files still take up a lot of space, might use more blocks to represent data (instead of just 16)
+
+
+### 2025-05-19 - Worked on changing block mapping
+- instead of 16 blocks, trying to use 256 different blocks to represent a byte
+	- should take up 16x less space
+- need to modify block list
+	- some blocks have extra data in the schematic, like the direction they face
