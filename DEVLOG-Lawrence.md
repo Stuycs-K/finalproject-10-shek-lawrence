@@ -26,3 +26,8 @@ This document must be updated daily every time you finish a work session.
 	- should take up 16x less space
 - need to modify block list
 	- some blocks have extra data in the schematic, like the direction they face
+
+### 2025-05-20 - Smaller block representation
+- files now take up less space in the world, faster to load
+- still need to further filter through block list
+	- some blocks cause too much lag
