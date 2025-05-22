@@ -50,6 +50,7 @@ def read_bytes(filename):
         exit(1)
 
     byte_array = [b for b in data]
+    print("byte array length: " + str(len(byte_array)))
     return byte_array
 
 
@@ -64,7 +65,9 @@ def build_schematic(filename, schematic_name):
         x = i % side_length
         z = (i // side_length) % side_length
         y = i // (side_length * side_length)
+        # print("index " + str(index))
         block = BYTES_TO_BLOCKS[index]
+        # print(block)
         schem.setBlock((x, y, z), block)
 
     schem.save(SCHEMATICS_FOLDER, schematic_name, mcschematic.Version.JE_1_21_5)
@@ -90,6 +93,8 @@ def decode_schematic(filepath, output_file):
     # convert indices to block array to byte array 
     byte_array = []
     for byte in data:
+        # Byte objects in the data array are signed integers from -128 to 127, but the array is indexed 0-255
+        byte = byte % 256
         # some blocks have additional properties, such as:
         # minecraft:brown_mushroom_block[down=true,east=true,north=true,south=true,up=true,west=true]
         # so we can split by "[" to ignore those 
@@ -98,6 +103,7 @@ def decode_schematic(filepath, output_file):
         if block in BLOCKS_TO_BYTES:
             byte_array.append(BLOCKS_TO_BYTES[block])
     byte_array = bytes(byte_array)
+    print(len(byte_array))
     with open(output_file, "wb") as f:
         f.write(byte_array)
 
