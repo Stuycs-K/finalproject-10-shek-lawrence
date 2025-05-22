@@ -31,3 +31,7 @@ This document must be updated daily every time you finish a work session.
 - files now take up less space in the world, faster to load
 - still need to further filter through block list
 	- some blocks cause too much lag
+
+### 2025-05-21 - Debugging
+- block list should be good? might still have some issues
+- decoding larger files doesn't work for some reason
