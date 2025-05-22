@@ -154,7 +154,6 @@ minecraft:stripped_jungle_wood
 minecraft:stripped_oak_wood
 minecraft:stripped_spruce_wood
 minecraft:tinted_glass
-
 minecraft:acacia_slab
 minecraft:andesite_slab
 minecraft:birch_slab
