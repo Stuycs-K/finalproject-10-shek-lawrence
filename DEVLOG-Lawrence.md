@@ -38,3 +38,8 @@ This document must be updated daily every time you finish a work session.
 
 ### 2025-05-22/23 - More debugging
 For some reason, the number of bytes read from a schematic file is greater than the number of bytes in the original file. Only noticed this happening with larger files, like images, and this didn't happen with the previous version, with 16 blocks instead of 256. Still, can't seem to figure out why program is reading more bytes than there exists. 
+
+
+### 2025-05-24 - Modified Encoding 
+- appended random blocks to end of block schematic
+	- file bytes don't always fill entire cube 
