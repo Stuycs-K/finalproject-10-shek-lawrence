@@ -2,6 +2,8 @@ import mcschematic
 import nbtlib 
 import argparse 
 import math
+import random
+
 
 SCHEMATICS_FOLDER = "/mnt/c/Users/lawre/AppData/Roaming/.minecraft/config/worldedit/schematics/"
 
@@ -24,13 +26,15 @@ BYTES_TO_BLOCKS = ["minecraft:white_wool",
 
 BLOCKS_TO_BYTES =  {block: i for i, block in enumerate(BYTES_TO_BLOCKS)}
 
-
+TOTAL_BYTES = 0
 
 def main():
     parser = argparse.ArgumentParser(description="Encode a file or decode a schematic file.")
     parser.add_argument("filename", help="The name of the file to process")
     parser.add_argument("-m", "--mode", choices=["encode", "decode"], type=str.lower, help="Mode of operation")
     parser.add_argument("-o", "--output", help="Output file name (for decode)")
+    parser.add_argument("-b", "--bytes", type=int, help="Number of bytes")
+
 
     args = parser.parse_args()
     if args.mode == "encode":
@@ -40,10 +44,13 @@ def main():
     elif args.mode == "decode":
         if args.output is None:
             args.output = "decrypted.txt"
+        global TOTAL_BYTES
+        TOTAL_BYTES = args.bytes 
         decode_schematic(SCHEMATICS_FOLDER + args.filename, args.output)
     else:
         print("invalid mode")
         exit(1)
+
 
 
 def read_bytes(filename):
@@ -62,6 +69,8 @@ def read_bytes(filename):
     for byte in data:
         hex_digits.append(byte >> 4)     
         hex_digits.append(byte & 0x0F)   
+
+    print("number of bytes", str(len(data)))
     return hex_digits
 
 
@@ -72,6 +81,13 @@ def build_schematic(filename, schematic_name):
     total_blocks = len(hex_digits)
     # round up
     side_length = math.ceil(total_blocks ** (1 / 3))
+    
+    # fill in empty bytes with random blocks 
+    total_blocks = side_length ** 3
+    for i in range(len(hex_digits), total_blocks):
+        hex_digits.append(random.randint(0, 15))
+
+
     for i, index in enumerate(hex_digits):
         x = i % side_length
         z = (i // side_length) % side_length
@@ -101,7 +117,7 @@ def decode_schematic(filepath, output_file):
 
     # convert indices to block array to byte array 
     byte_array = []
-    for byte in data:
+    for byte in data[:TOTAL_BYTES * 2]:
         block = index_to_block[byte]
         # don't include extranneous blocks
         if block in BLOCKS_TO_BYTES:
