@@ -2,6 +2,7 @@ import mcschematic
 import nbtlib 
 import argparse 
 import math
+import random
 
 SCHEMATICS_FOLDER = "/mnt/c/Users/lawre/AppData/Roaming/.minecraft/config/worldedit/schematics/"
 
@@ -11,15 +12,18 @@ with open("blocks.txt", "r") as f:
         BYTES_TO_BLOCKS.append(f.readline().rstrip())
 
     
-BLOCKS_TO_BYTES =  {block: i for i, block in enumerate(BYTES_TO_BLOCKS)}
+BLOCKS_TO_BYTES = {block: i for i, block in enumerate(BYTES_TO_BLOCKS)}
 
 
+TOTAL_BYTES = 0
 
 def main():
     parser = argparse.ArgumentParser(description="Encode a file or decode a schematic file.")
     parser.add_argument("filename", help="The name of the file to process")
     parser.add_argument("-m", "--mode", choices=["encode", "decode"], type=str.lower, help="Mode of operation")
     parser.add_argument("-o", "--output", help="Output file name (for decode)")
+    parser.add_argument("-b", "--bytes", type=int, help="Number of bytes")
+
 
     args = parser.parse_args()
     if args.output is None:
@@ -32,6 +36,8 @@ def main():
     elif args.mode == "decode":
         if args.output is None:
             args.output = "decrypted.txt"
+        global TOTAL_BYTES
+        TOTAL_BYTES = args.bytes 
         decode_schematic(SCHEMATICS_FOLDER + args.filename, args.output)
     else:
         print("Invalid mode. Please specify: '-m encode' or '-m decode'")
@@ -50,26 +56,32 @@ def read_bytes(filename):
         exit(1)
 
     byte_array = [b for b in data]
-    print("byte array length: " + str(len(byte_array)))
     return byte_array
 
 
 def build_schematic(filename, schematic_name):
     schem = mcschematic.MCSchematic()
     byte_array = read_bytes(filename)
-
+    
     total_blocks = len(byte_array)
+    print("byte array length: " + str(total_blocks))
     # round up
     side_length = math.ceil(total_blocks ** (1 / 3))
+
+    # fill in empty bytes with random blocks 
+    total_blocks = side_length ** 3
+    for i in range(len(byte_array), total_blocks):
+        byte_array.append(random.randint(0, 255))
+
+
     for i, index in enumerate(byte_array):
         x = i % side_length
         z = (i // side_length) % side_length
         y = i // (side_length * side_length)
         # print("index " + str(index))
-        block = BYTES_TO_BLOCKS[index]
-        # print(block)
-        schem.setBlock((x, y, z), block)
+        block = BYTES_TO_BLOCKS[index]  
 
+        schem.setBlock((x, y, z), block)
     schem.save(SCHEMATICS_FOLDER, schematic_name, mcschematic.Version.JE_1_21_5)
 
 
@@ -92,7 +104,8 @@ def decode_schematic(filepath, output_file):
 
     # convert indices to block array to byte array 
     byte_array = []
-    for byte in data:
+    count = {}
+    for byte in data[:TOTAL_BYTES]:
         # Byte objects in the data array are signed integers from -128 to 127, but the array is indexed 0-255
         byte = byte % 256
         # some blocks have additional properties, such as:
@@ -102,12 +115,17 @@ def decode_schematic(filepath, output_file):
         # don't include extranneous blocks
         if block in BLOCKS_TO_BYTES:
             byte_array.append(BLOCKS_TO_BYTES[block])
+    #         if block not in count:
+    #             count[block] = 0
+    #         count[block] += 1
+    # for b in count:
+    #     print(b, count[b])
+
     byte_array = bytes(byte_array)
-    print(len(byte_array))
+    # print("num bytes " + str(len(byte_array)))
+
     with open(output_file, "wb") as f:
         f.write(byte_array)
-
-
 
 
 
