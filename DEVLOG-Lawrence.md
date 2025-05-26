@@ -43,3 +43,7 @@ For some reason, the number of bytes read from a schematic file is greater than 
 ### 2025-05-24 - Modified Encoding 
 - appended random blocks to end of block schematic
 	- file bytes don't always fill entire cube 
+
+### 2025-05-25 - Worked on fixing decode
+- removed duplicate block in blocks.txt file, which could have been causing problems
+	- added --bytes option to know when to stop decoding 
