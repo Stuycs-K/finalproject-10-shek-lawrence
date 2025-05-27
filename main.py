@@ -124,10 +124,11 @@ def decode_schematic(filepath, output_file):
         exit(1)
 
     # palette is a dictionary that maps each block to an integer 
-    palette = schem['Schematic']['Blocks']['Palette']
+    palette = schem["Schematic"]["Blocks"]["Palette"]
     # data is a byte array storing the order that the blocks are stored, using the indices in palette corresponding to the name of the block
-    data = schem['Schematic']['Blocks']['Data']
+    data = schem["Schematic"]["Blocks"]["Data"]
     
+
     index_to_block = {v: k for k, v in palette.items()}
 
     # convert indices to block array to byte array 
@@ -154,7 +155,13 @@ def decode_schematic(filepath, output_file):
         f.write(byte_array)
 
 
-
+def shuffle_pos(width, height, length, seed):
+    pos = []
+    for y in range(height):
+        for x in range(width):
+            for z in range(length):
+                pos.append((x, y, z))
+    random.Random(seed).shuffle(pos)
 
 
 if __name__ == "__main__":
