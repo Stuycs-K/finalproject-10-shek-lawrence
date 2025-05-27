@@ -33,14 +33,14 @@ with open("blocks.txt", "r") as f:
         BYTES_TO_BLOCKS.append(f.readline().rstrip())
 
 
-
 TOTAL_BYTES = 0
+SEED = -1
 
 def main():
     parser = argparse.ArgumentParser(description="Encode a file or decode a schematic file.")
-    parser.add_argument("filename", help="The name of the file to process")
     parser.add_argument("-m", "--mode", choices=["encode", "decode"], type=str.lower, help="Mode of operation")
-    parser.add_argument("-o", "--output", help="Output file name (for decode)")
+    parser.add_argument("-i", "--input", help="Name of the file to process") 
+    parser.add_argument("-o", "--output", help="Output file name")
     parser.add_argument("-b", "--bytes", type=int, help="Number of bytes")
 
 
@@ -48,13 +48,13 @@ def main():
     if args.mode == "encode":
         if args.output is None:
             args.output = "secret"
-        build_schematic(args.filename, args.output)
+        build_schematic(args.input, args.output)
     elif args.mode == "decode":
         if args.output is None:
             args.output = "decrypted.txt"
         global TOTAL_BYTES
         TOTAL_BYTES = args.bytes 
-        decode_schematic(SCHEMATICS_FOLDER + args.filename, args.output)
+        decode_schematic(SCHEMATICS_FOLDER + args.input, args.output)
     else:
         print("invalid mode")
         exit(1)
@@ -79,8 +79,8 @@ def read_bytes(filename):
         hex_digits.append(byte >> 4)
 
         # random block
-        hex_digits.append(random.randint(16, 255))
-        additional_bytes += 1
+        # hex_digits.append(random.randint(16, 255))
+        # additional_bytes += 1
 
         hex_digits.append(byte & 0x0F)   
 
