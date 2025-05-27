@@ -47,3 +47,7 @@ For some reason, the number of bytes read from a schematic file is greater than 
 ### 2025-05-25 - Worked on fixing decode
 - removed duplicate block in blocks.txt file, which could have been causing problems
 	- added --bytes option to know when to stop decoding 
+
+### 2025-05-26 - Encryption 
+- added random blocks within schematic to make decoding more difficult 
+- couldn't get encoding with 256 blocks working
