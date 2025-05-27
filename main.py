@@ -24,7 +24,15 @@ BYTES_TO_BLOCKS = ["minecraft:white_wool",
                    "minecraft:magenta_wool",
                    "minecraft:pink_wool"]
 
-BLOCKS_TO_BYTES =  {block: i for i, block in enumerate(BYTES_TO_BLOCKS)}
+BLOCKS_TO_BYTES = {block: i for i, block in enumerate(BYTES_TO_BLOCKS)}
+
+
+# random blocks 
+with open("blocks.txt", "r") as f:
+    for i in range(240):
+        BYTES_TO_BLOCKS.append(f.readline().rstrip())
+
+
 
 TOTAL_BYTES = 0
 
@@ -66,11 +74,18 @@ def read_bytes(filename):
 
 
     hex_digits = []
+    additional_bytes = 0
     for byte in data:
-        hex_digits.append(byte >> 4)     
+        hex_digits.append(byte >> 4)
+
+        # random block
+        hex_digits.append(random.randint(16, 255))
+        additional_bytes += 1
+
         hex_digits.append(byte & 0x0F)   
 
-    print("number of bytes", str(len(data)))
+
+    print("number of bytes", str(len(data) + additional_bytes))
     return hex_digits
 
 
@@ -85,7 +100,7 @@ def build_schematic(filename, schematic_name):
     # fill in empty bytes with random blocks 
     total_blocks = side_length ** 3
     for i in range(len(hex_digits), total_blocks):
-        hex_digits.append(random.randint(0, 15))
+        hex_digits.append(random.randint(16, 255))
 
 
     for i, index in enumerate(hex_digits):
@@ -118,6 +133,8 @@ def decode_schematic(filepath, output_file):
     # convert indices to block array to byte array 
     byte_array = []
     for byte in data[:TOTAL_BYTES * 2]:
+        # Byte objects in the data array are signed integers from -128 to 127, but the array is indexed 0-255
+        byte = byte % 256
         block = index_to_block[byte]
         # don't include extranneous blocks
         if block in BLOCKS_TO_BYTES:
