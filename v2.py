@@ -102,11 +102,12 @@ def build_schematic(filename, schematic_name):
     for i in range(len(hex_digits), total_blocks):
         hex_digits.append(random.randint(16, 255))
 
-
+    pos = shuffle_pos(side_length, side_length, side_length, SEED)
     for i, index in enumerate(hex_digits):
-        x = i % side_length
-        z = (i // side_length) % side_length
-        y = i // (side_length * side_length)
+        x, y, z = pos[i]
+        # x = i % side_length
+        # z = (i // side_length) % side_length
+        # y = i // (side_length * side_length)
         block = BYTES_TO_BLOCKS[index]
         schem.setBlock((x, y, z), block)
 
@@ -135,6 +136,8 @@ def decode_schematic(filepath, output_file):
 
     # list of positions of all blocks in the format (x, y, z)
     block_positions = shuffle_pos(width, height, length, SEED)
+
+    
     # map pos to value in original byte array 
     pos_to_value = {pos : i for i, pos in enumerate(block_positions)}     
     value_to_block = {v: k for k, v in palette.items()}
@@ -142,6 +145,7 @@ def decode_schematic(filepath, output_file):
     
     # convert values from block array to byte array 
     byte_array = []
+
 
     for pos in block_positions:
         val = pos_to_value[pos]
