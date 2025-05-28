@@ -74,18 +74,19 @@ def read_bytes(filename):
 
 
     hex_digits = []
-    additional_bytes = 0
+
+    # prepend length of file in first 8 blocks (32 bit integer)
+    file_size = len(data)
+    for i in range(8):
+        hex_digits.append(file_size >> 4)
+        file_size = file_size & 0x0F
+
     for byte in data:
         hex_digits.append(byte >> 4)
-
-        # random block
-        # hex_digits.append(random.randint(16, 255))
-        # additional_bytes += 1
-
         hex_digits.append(byte & 0x0F)   
 
 
-    print("number of bytes", str(len(data) + additional_bytes))
+    print("number of bytes", str(len(data)))
     return hex_digits
 
 
@@ -97,10 +98,11 @@ def build_schematic(filename, schematic_name):
     # round up
     side_length = math.ceil(total_blocks ** (1 / 3))
     
+
     # fill in empty bytes with random blocks 
     total_blocks = side_length ** 3
     for i in range(len(hex_digits), total_blocks):
-        hex_digits.append(random.randint(16, 255))
+        hex_digits.append(random.randint(0, 15))
 
 
     for i, index in enumerate(hex_digits):
@@ -129,14 +131,14 @@ def decode_schematic(filepath, output_file):
     data = schem["Schematic"]["Blocks"]["Data"]
     
 
-    index_to_block = {v: k for k, v in palette.items()}
+    val_to_block = {v: k for k, v in palette.items()}
 
     # convert indices to block array to byte array 
     byte_array = []
     for byte in data[:TOTAL_BYTES * 2]:
         # Byte objects in the data array are signed integers from -128 to 127, but the array is indexed 0-255
         byte = byte % 256
-        block = index_to_block[byte]
+        block = val_to_block[byte]
         # don't include extranneous blocks
         if block in BLOCKS_TO_BYTES:
             byte_array.append(BLOCKS_TO_BYTES[block])
@@ -154,14 +156,6 @@ def decode_schematic(filepath, output_file):
     with open(output_file, "wb") as f:
         f.write(byte_array)
 
-
-def shuffle_pos(width, height, length, seed):
-    pos = []
-    for y in range(height):
-        for x in range(width):
-            for z in range(length):
-                pos.append((x, y, z))
-    random.Random(seed).shuffle(pos)
 
 
 if __name__ == "__main__":
