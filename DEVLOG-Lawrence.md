@@ -51,3 +51,7 @@ For some reason, the number of bytes read from a schematic file is greater than 
 ### 2025-05-26 - Encryption 
 - added random blocks within schematic to make decoding more difficult 
 - couldn't get encoding with 256 blocks working
+
+### 2025-05-27 - More Encryption
+- idea: randomly generate key using a seed 
+- use this key to rearrange order of blocks --> decode using key 
