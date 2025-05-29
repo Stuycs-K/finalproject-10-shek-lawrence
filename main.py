@@ -34,7 +34,9 @@ with open("blocks.txt", "r") as f:
 
 
 TOTAL_BYTES = 0
-SEED = -1
+SEED = 7114238357002984737
+# first 8 blocks of the file store the file size
+FILE_START = 8
 
 def main():
     parser = argparse.ArgumentParser(description="Encode a file or decode a schematic file.")
@@ -77,7 +79,7 @@ def read_bytes(filename):
 
     # prepend length of file in first 8 blocks (32 bit integer)
     file_size = len(data)
-    for i in range(8):
+    for i in range(FILE_START):
         hex_digits.append(file_size & 0x0F)
         file_size = file_size >> 4
 
@@ -129,32 +131,43 @@ def decode_schematic(filepath, output_file):
     palette = schem["Schematic"]["Blocks"]["Palette"]
     # data is a byte array storing the order that the blocks are stored, using the indices in palette corresponding to the name of the block
     data = schem["Schematic"]["Blocks"]["Data"]
-    
-
+    # take the values in data to get the corresponding block 
     val_to_block = {v: k for k, v in palette.items()}
 
-    # convert indices to block array to byte array 
-    byte_array = []
-    for byte in data[:TOTAL_BYTES * 2]:
-        # Byte objects in the data array are signed integers from -128 to 127, but the array is indexed 0-255
-        byte = byte % 256
-        block = val_to_block[byte]
-        # don't include extranneous blocks
-        if block in BLOCKS_TO_BYTES:
-            byte_array.append(BLOCKS_TO_BYTES[block])
     
-    # convert back to byte values
-    temp = []
-    for i in range(0, len(byte_array), 2):
-        temp.append(16 * byte_array[i] + byte_array[i + 1])
-    byte_array = temp
+    # get the size stored in the first [FILE_START] blocks of the file  
+    size_in_blocks = []
+    for byte in data[:FILE_START]:
+        block = val_to_block[byte % 256]
+        size_in_blocks.append(BLOCKS_TO_BYTES[block])
+    total_bytes = get_file_size(size_in_blocks)
+    print("total bytes " + str(total_bytes))
+
+    # total_bytes = get_file_size(data[:FILE_START])
+    # print("total bytes " + str(total_bytes))
+
+    # convert indices to block array to byte array 
+    # byte_array = []
+    # for byte in data[FILE_START:total]:
+    #     # Byte objects in the data array are signed integers from -128 to 127, but the array is indexed 0-255
+    #     byte = byte % 256
+    #     block = val_to_block[byte]
+    #     # don't include extranneous blocks
+    #     if block in BLOCKS_TO_BYTES:
+    #         byte_array.append(BLOCKS_TO_BYTES[block])
+    
+    # # convert back to byte values
+    # temp = []
+    # for i in range(0, len(byte_array), 2):
+    #     temp.append(16 * byte_array[i] + byte_array[i + 1])
+    # byte_array = temp
 
 
-    byte_array = bytes(byte_array)
+    # byte_array = bytes(byte_array)
 
 
-    with open(output_file, "wb") as f:
-        f.write(byte_array)
+    # with open(output_file, "wb") as f:
+        # f.write(byte_array)
 
 
 def get_file_size(bits):
