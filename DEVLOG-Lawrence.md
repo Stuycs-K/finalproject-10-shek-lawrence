@@ -55,3 +55,9 @@ For some reason, the number of bytes read from a schematic file is greater than 
 ### 2025-05-27 - More Encryption
 - idea: randomly generate key using a seed 
 - use this key to rearrange order of blocks --> decode using key 
+
+
+## 2025-05-29 - Decoding v2
+- worked on decoding with shuffled arrangement of blocks
+- appended blocks to start of schematic to indicate block length
+	- still need to implement properly in decode
