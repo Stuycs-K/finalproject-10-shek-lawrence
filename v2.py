@@ -79,8 +79,8 @@ def read_bytes(filename):
         hex_digits.append(byte >> 4)
 
         # random block
-        hex_digits.append(random.randint(16, 255))
-        additional_bytes += 1
+        # hex_digits.append(random.randint(16, 255))
+        # additional_bytes += 1
 
         hex_digits.append(byte & 0x0F)   
 
@@ -103,12 +103,12 @@ def build_schematic(filename, schematic_name):
         hex_digits.append(random.randint(16, 255))
 
     pos = shuffle_pos(side_length, side_length, side_length, SEED)
-    for i, index in enumerate(hex_digits):
+    for i, val in enumerate(hex_digits):
         x, y, z = pos[i]
         # x = i % side_length
         # z = (i // side_length) % side_length
         # y = i // (side_length * side_length)
-        block = BYTES_TO_BLOCKS[index]
+        block = BYTES_TO_BLOCKS[val]
         schem.setBlock((x, y, z), block)
 
     schem.save(SCHEMATICS_FOLDER, schematic_name, mcschematic.Version.JE_1_21_5)
@@ -135,21 +135,26 @@ def decode_schematic(filepath, output_file):
     length = schem["Schematic"]["Length"]
 
     # list of positions of all blocks in the format (x, y, z)
+    # (using the same seed to get original position blocks were placed in)
     block_positions = shuffle_pos(width, height, length, SEED)
 
-    
+    val_to_block = {v: k for k, v in palette.items()}
     # map pos to value in original byte array 
-    pos_to_value = {pos : i for i, pos in enumerate(block_positions)}     
-    value_to_block = {v: k for k, v in palette.items()}
+    pos_to_index = {pos : i for i, pos in enumerate(block_positions)}     
 
     
     # convert values from block array to byte array 
     byte_array = []
 
-
     for pos in block_positions:
-        val = pos_to_value[pos]
-        block = value_to_block(val)
+        index = pos_to_index[pos]
+        val = data[index] 
+        block = val_to_block[val]
+        if block in BLOCKS_TO_BYTES:
+            byte_array.append(BLOCKS_TO_BYTES[block])
+        
+
+    
     # for byte in data[:TOTAL_BYTES * 2]:
     #     # Byte objects in the data array are signed integers from -128 to 127, but the array is indexed 0-255
     #     byte = byte % 256
@@ -180,6 +185,14 @@ def shuffle_pos(width, height, length, seed):
                 pos.append((x, y, z))
     random.Random(seed).shuffle(pos)
     return pos 
+
+
+def get_pos(index, width, height, length):
+    y = index // (width * length)
+    rem = index % (width * length)
+    z = rem // width
+    x = rem % width
+    return (x, y, z)
 
 
 if __name__ == "__main__":
