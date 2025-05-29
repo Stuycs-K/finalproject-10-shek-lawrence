@@ -74,6 +74,13 @@ def read_bytes(filename):
 
 
     hex_digits = []
+
+    # prepend length of file in first 8 blocks (32 bit integer)
+    file_size = len(data)
+    for i in range(8):
+        hex_digits.append(file_size & 0x0F)
+        file_size = file_size >> 4
+    
     additional_bytes = 0
     for byte in data:
         hex_digits.append(byte >> 4)
@@ -148,13 +155,14 @@ def decode_schematic(filepath, output_file):
 
     for pos in block_positions:
         index = pos_to_index[pos]
-        val = data[index] 
+        val = data[index] % 256
         block = val_to_block[val]
         if block in BLOCKS_TO_BYTES:
             byte_array.append(BLOCKS_TO_BYTES[block])
         
 
-    
+    print("bytes " + str(len(byte_array)))
+    print("total blocks " + str(len(block_positions)))
     # for byte in data[:TOTAL_BYTES * 2]:
     #     # Byte objects in the data array are signed integers from -128 to 127, but the array is indexed 0-255
     #     byte = byte % 256
@@ -175,6 +183,13 @@ def decode_schematic(filepath, output_file):
 
     with open(output_file, "wb") as f:
         f.write(byte_array)
+
+
+def get_file_size(bits):
+    total = 0
+    for i, val in enumerate(bits):
+        total += 16 ** i * val
+    return total
 
 
 def shuffle_pos(width, height, length, seed):

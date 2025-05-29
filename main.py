@@ -78,8 +78,8 @@ def read_bytes(filename):
     # prepend length of file in first 8 blocks (32 bit integer)
     file_size = len(data)
     for i in range(8):
-        hex_digits.append(file_size >> 4)
-        file_size = file_size & 0x0F
+        hex_digits.append(file_size & 0x0F)
+        file_size = file_size >> 4
 
     for byte in data:
         hex_digits.append(byte >> 4)
@@ -156,6 +156,12 @@ def decode_schematic(filepath, output_file):
     with open(output_file, "wb") as f:
         f.write(byte_array)
 
+
+def get_file_size(bits):
+    total = 0
+    for i, val in enumerate(bits):
+        total += 16 ** i * val
+    return total
 
 
 if __name__ == "__main__":
