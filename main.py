@@ -33,8 +33,6 @@ with open("blocks.txt", "r") as f:
         BYTES_TO_BLOCKS.append(f.readline().rstrip())
 
 
-TOTAL_BYTES = 0
-SEED = 7114238357002984737
 # first 8 blocks of the file store the file size
 FILE_START = 8
 
@@ -43,7 +41,6 @@ def main():
     parser.add_argument("-m", "--mode", choices=["encode", "decode"], type=str.lower, help="Mode of operation")
     parser.add_argument("-i", "--input", help="Name of the file to process") 
     parser.add_argument("-o", "--output", help="Output file name")
-    parser.add_argument("-b", "--bytes", type=int, help="Number of bytes")
 
 
     args = parser.parse_args()
@@ -54,8 +51,6 @@ def main():
     elif args.mode == "decode":
         if args.output is None:
             args.output = "decrypted.txt"
-        global TOTAL_BYTES
-        TOTAL_BYTES = args.bytes 
         decode_schematic(SCHEMATICS_FOLDER + args.input, args.output)
     else:
         print("invalid mode")
@@ -87,8 +82,6 @@ def read_bytes(filename):
         hex_digits.append(byte >> 4)
         hex_digits.append(byte & 0x0F)   
 
-
-    print("number of bytes", str(len(data)))
     return hex_digits
 
 
@@ -137,37 +130,36 @@ def decode_schematic(filepath, output_file):
     
     # get the size stored in the first [FILE_START] blocks of the file  
     size_in_blocks = []
-    for byte in data[:FILE_START]:
+    for byte in data[:FILE_START]:  
         block = val_to_block[byte % 256]
         size_in_blocks.append(BLOCKS_TO_BYTES[block])
     total_bytes = get_file_size(size_in_blocks)
-    print("total bytes " + str(total_bytes))
 
-    # total_bytes = get_file_size(data[:FILE_START])
-    # print("total bytes " + str(total_bytes))
 
     # convert indices to block array to byte array 
-    # byte_array = []
-    # for byte in data[FILE_START:total]:
-    #     # Byte objects in the data array are signed integers from -128 to 127, but the array is indexed 0-255
-    #     byte = byte % 256
-    #     block = val_to_block[byte]
-    #     # don't include extranneous blocks
-    #     if block in BLOCKS_TO_BYTES:
-    #         byte_array.append(BLOCKS_TO_BYTES[block])
-    
-    # # convert back to byte values
-    # temp = []
-    # for i in range(0, len(byte_array), 2):
-    #     temp.append(16 * byte_array[i] + byte_array[i + 1])
-    # byte_array = temp
+    byte_array = []
+    for byte in data[FILE_START:]:
+        # Byte objects in the data array are signed integers from -128 to 127, but the array is indexed 0-255
+        block = val_to_block[byte % 256]
+        # don't include extranneous blocks
+        if block in BLOCKS_TO_BYTES:
+            byte_array.append(BLOCKS_TO_BYTES[block])
+
+        # stop if end of file reached (there are likely extra blocks at the end that aren't part of the file)
+        if len(byte_array) >= 2 * total_bytes:
+            break
+
+    # convert back to byte values
+    temp = []
+    for i in range(0, len(byte_array), 2):
+        temp.append(16 * byte_array[i] + byte_array[i + 1])
+    byte_array = temp
+
+    byte_array = bytes(byte_array)
 
 
-    # byte_array = bytes(byte_array)
-
-
-    # with open(output_file, "wb") as f:
-        # f.write(byte_array)
+    with open(output_file, "wb") as f:
+        f.write(byte_array)
 
 
 def get_file_size(bits):
