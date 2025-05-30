@@ -57,7 +57,14 @@ For some reason, the number of bytes read from a schematic file is greater than 
 - use this key to rearrange order of blocks --> decode using key 
 
 
-## 2025-05-29 - Decoding v2
+### 2025-05-28 - Decoding v2
 - worked on decoding with shuffled arrangement of blocks
 - appended blocks to start of schematic to indicate block length
 	- still need to implement properly in decode
+
+### 2025-05-29 - Fixed some errors
+- fixed basic file encode/decode
+- no longer need to include number of bytes to decode
+- moved random blocks and varied block order to v2
+
+
