@@ -68,3 +68,6 @@ For some reason, the number of bytes read from a schematic file is greater than 
 - moved random blocks and varied block order to v2
 
 
+### 2025-05-30 - Worked on further obfuscation 
+- for some reason, number of blocks read from schematic isn't matching up with number of blocks encoded 
+	- could have to do with blocks used? maybe? 
