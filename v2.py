@@ -80,7 +80,6 @@ def read_bytes(filename):
         hex_digits.append(file_size & 0x0F)
         file_size = file_size >> 4
     
-    additional_bytes = 0
     for byte in data:
         hex_digits.append(byte >> 4)
 
@@ -100,11 +99,11 @@ def build_schematic(filename, schematic_name):
     total_blocks = len(hex_digits)
     # round up
     side_length = math.ceil(total_blocks ** (1 / 3))
-    
+
     # fill in empty bytes with random blocks 
     total_blocks = side_length ** 3
     for i in range(len(hex_digits), total_blocks):
-        hex_digits.append(random.randint(16, 255))
+        hex_digits.append(random.randint(0, 15))
 
     pos = shuffle_pos(side_length, side_length, side_length, SEED)
     for i, val in enumerate(hex_digits):
@@ -135,6 +134,7 @@ def decode_schematic(filepath, output_file):
     height = schem["Schematic"]["Height"]
     length = schem["Schematic"]["Length"]
 
+
     # list of positions of all blocks in the format (x, y, z)
     # (using the same seed to get original position blocks were placed in)
     block_positions = shuffle_pos(width, height, length, SEED)
@@ -144,27 +144,31 @@ def decode_schematic(filepath, output_file):
     pos_to_index = {pos : i for i, pos in enumerate(block_positions)}     
 
     
-    byte_array = [None] * len(block_positions)
-    
+    byte_array = [-1] * len(block_positions)
+
+
+    # print(str(len(schem["Schematic"]["Blocks"])))
     # convert values from block array to byte array 
+    data = data[:width * length * height]
     for i, byte in enumerate(data):
         # Byte objects in the data array are signed integers from -128 to 127, but the array is indexed 0-255
         block = val_to_block[byte % 256]
+        if block not in BLOCKS_TO_BYTES:
+            continue
         pos = get_pos(i, width, height, length)
         index = pos_to_index[pos]
-        if block in BLOCKS_TO_BYTES:
-            byte_array[index] = BLOCKS_TO_BYTES[block]
+        byte_array[index] = BLOCKS_TO_BYTES[block]
+
+    # for random scattered blocks, read in the full array then create a new one without the extraneous blocks
 
 
     total_bytes = get_file_size(byte_array[:FILE_START])
-
 
     # convert back to byte values
     temp = []
     for i in range(FILE_START, FILE_START + total_bytes * 2, 2):
         temp.append(16 * byte_array[i] + byte_array[i + 1])
     byte_array = temp
-
 
     byte_array = bytes(byte_array)
 
@@ -186,17 +190,22 @@ def shuffle_pos(width, height, length, seed):
         for y in range(height):
             for z in range(length):
                 pos.append((x, y, z))
+    # for p in pos:
+    #     print(p)
+    # print(len(pos))
+    # print("------------------------")
     random.Random(seed).shuffle(pos)
     return pos 
 
 
 def get_pos(index, width, height, length):
     # blocks in the schematic are read in the order: x, z, y (all in the positive direction)
+    x = index % width 
+    z = (index // width) % length
     y = index // (width * length)
-    rem = index % (width * length)
-    z = rem // length
-    x = rem % width
-    return (x, y, z)
+    # print("index " + str(index))
+    # print("width " + str(width))
+    return (x, y, z)  
 
 
 if __name__ == "__main__":
