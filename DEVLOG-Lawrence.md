@@ -71,3 +71,7 @@ For some reason, the number of bytes read from a schematic file is greater than 
 ### 2025-05-30 - Worked on further obfuscation 
 - for some reason, number of blocks read from schematic isn't matching up with number of blocks encoded 
 	- could have to do with blocks used? maybe? 
+
+### 2025-05-31 - Modified schematic order working
+- decode with key working for randomized block order
+	- data array would sometimes have more blocks than the actual schematic stored, seems to likely be a problem with some of the blocks used..
