@@ -75,3 +75,7 @@ For some reason, the number of bytes read from a schematic file is greater than 
 ### 2025-05-31 - Modified schematic order working
 - decode with key working for randomized block order
 	- data array would sometimes have more blocks than the actual schematic stored, seems to likely be a problem with some of the blocks used..
+
+### 2025-06-01 - Incorporating random blocks
+- included random extraneous blocks within the schematic
+	- seems to not work sometimes for larger files
