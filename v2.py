@@ -82,9 +82,13 @@ def read_bytes(filename):
         hex_digits.append(byte >> 4)
         hex_digits.append(byte & 0x0F)   
 
+    # print("og length " + str(len(hex_digits)))
+    # print(hex_digits[:50])
+    
     # incorporate random blocks outside of block list
-    # for i in range(len(hex_digits) // 2):
-        # hex_digits.append(random.randint(16, len(BYTES_TO_BLOCKS) - 1))
+    for i in range(len(hex_digits) // 4):
+        hex_digits.append(random.randint(16, len(BYTES_TO_BLOCKS) - 1))
+        hex_digits.append(random.randint(16, len(BYTES_TO_BLOCKS) - 1))
     
     return hex_digits
 
@@ -93,7 +97,6 @@ def build_schematic(filename, schematic_name):
     schem = mcschematic.MCSchematic()
     hex_digits = read_bytes(filename)
 
-    # print(hex_digits)
     total_blocks = len(hex_digits)
     # round up
     side_length = math.ceil(total_blocks ** (1 / 3))
@@ -148,6 +151,7 @@ def decode_schematic(filepath, output_file):
 
     # print(str(len(schem["Schematic"]["Blocks"])))
     # convert values from block array to byte array 
+    print("data length " + str(len(data)))
     data = data[:width * length * height]
     for i, byte in enumerate(data):
         # Byte objects in the data array are signed integers from -128 to 127, but the array is indexed 0-255
@@ -160,13 +164,12 @@ def decode_schematic(filepath, output_file):
 
     # for random scattered blocks, read in the full array then create a new one without the extraneous blocks
     # print("before")
-    # print(byte_array)
-    # temp = []
-    # for byte in byte_array:
-    #     if byte > -1:
-    #         temp.append(byte)
-    # byte_array = temp
-    # print(byte_array)
+    # print(byte_array[:50])
+    temp = []
+    for byte in byte_array:
+        if byte > -1:
+            temp.append(byte)
+    byte_array = temp
     # print(len(byte_array))
 
     total_bytes = get_file_size(byte_array[:FILE_START])
