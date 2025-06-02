@@ -26,12 +26,10 @@ BYTES_TO_BLOCKS = ["minecraft:white_wool",
 
 BLOCKS_TO_BYTES = {block: i for i, block in enumerate(BYTES_TO_BLOCKS)}
 
-
 # random blocks 
 with open("blocks.txt", "r") as f:
-    for i in range(240):
-        BYTES_TO_BLOCKS.append(f.readline().rstrip())
-
+    random_blocks = f.read().split()
+    BYTES_TO_BLOCKS += random_blocks
 
 SEED = 7114238357002984737
 
@@ -82,13 +80,12 @@ def read_bytes(filename):
     
     for byte in data:
         hex_digits.append(byte >> 4)
-
-        # random block
-        # hex_digits.append(random.randint(16, 255))
-        # additional_bytes += 1
-
         hex_digits.append(byte & 0x0F)   
 
+    # incorporate random blocks outside of block list
+    # for i in range(len(hex_digits) // 2):
+        # hex_digits.append(random.randint(16, len(BYTES_TO_BLOCKS) - 1))
+    
     return hex_digits
 
 
@@ -96,6 +93,7 @@ def build_schematic(filename, schematic_name):
     schem = mcschematic.MCSchematic()
     hex_digits = read_bytes(filename)
 
+    # print(hex_digits)
     total_blocks = len(hex_digits)
     # round up
     side_length = math.ceil(total_blocks ** (1 / 3))
@@ -111,6 +109,7 @@ def build_schematic(filename, schematic_name):
         block = BYTES_TO_BLOCKS[val]
         schem.setBlock((x, y, z), block)
     
+
     schem.save(SCHEMATICS_FOLDER, schematic_name, mcschematic.Version.JE_1_21_5)
 
 
@@ -160,10 +159,18 @@ def decode_schematic(filepath, output_file):
         byte_array[index] = BLOCKS_TO_BYTES[block]
 
     # for random scattered blocks, read in the full array then create a new one without the extraneous blocks
-
+    # print("before")
+    # print(byte_array)
+    # temp = []
+    # for byte in byte_array:
+    #     if byte > -1:
+    #         temp.append(byte)
+    # byte_array = temp
+    # print(byte_array)
+    # print(len(byte_array))
 
     total_bytes = get_file_size(byte_array[:FILE_START])
-
+    # print("total bytes " + str(total_bytes))
     # convert back to byte values
     temp = []
     for i in range(FILE_START, FILE_START + total_bytes * 2, 2):
