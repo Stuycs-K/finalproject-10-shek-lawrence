@@ -26,14 +26,14 @@ BYTES_TO_BLOCKS = ["minecraft:white_wool",
 
 BLOCKS_TO_BYTES = {block: i for i, block in enumerate(BYTES_TO_BLOCKS)}
 
+
 # random blocks 
 with open("blocks.txt", "r") as f:
-    random_blocks = f.read().split()
-    BYTES_TO_BLOCKS += random_blocks
+    for i in range(240):
+        BYTES_TO_BLOCKS.append(f.readline().rstrip())
 
-SEED = 7114238357002984737
 
-# first 8 blocks of the file store the file size (32 bit integer) 
+# first 8 blocks of the file store the file size
 FILE_START = 8
 
 def main():
@@ -77,17 +77,11 @@ def read_bytes(filename):
     for i in range(FILE_START):
         hex_digits.append(file_size & 0x0F)
         file_size = file_size >> 4
-    
+
     for byte in data:
         hex_digits.append(byte >> 4)
         hex_digits.append(byte & 0x0F)   
-    
 
-    # incorporate random blocks outside of block list
-    for i in range(len(hex_digits) // 4):
-        hex_digits.append(random.randint(16, len(BYTES_TO_BLOCKS) - 1))
-        hex_digits.append(random.randint(16, len(BYTES_TO_BLOCKS) - 1))
-    
     return hex_digits
 
 
@@ -96,21 +90,22 @@ def build_schematic(filename, schematic_name):
     hex_digits = read_bytes(filename)
 
     total_blocks = len(hex_digits)
-    
     # round up
     side_length = math.ceil(total_blocks ** (1 / 3))
+    
 
     # fill in empty bytes with random blocks 
     total_blocks = side_length ** 3
     for i in range(len(hex_digits), total_blocks):
         hex_digits.append(random.randint(0, 15))
 
-    pos = shuffle_pos(side_length, side_length, side_length, SEED)
-    for i, val in enumerate(hex_digits):
-        x, y, z = pos[i]
-        block = BYTES_TO_BLOCKS[val]
+
+    for i, index in enumerate(hex_digits):
+        x = i % side_length
+        z = (i // side_length) % side_length
+        y = i // (side_length * side_length)
+        block = BYTES_TO_BLOCKS[index]
         schem.setBlock((x, y, z), block)
-    
 
     schem.save(SCHEMATICS_FOLDER, schematic_name, mcschematic.Version.JE_1_21_5)
 
@@ -129,47 +124,34 @@ def decode_schematic(filepath, output_file):
     palette = schem["Schematic"]["Blocks"]["Palette"]
     # data is a byte array storing the order that the blocks are stored, using the indices in palette corresponding to the name of the block
     data = schem["Schematic"]["Blocks"]["Data"]
-    
-
-    width = schem["Schematic"]["Width"]
-    height = schem["Schematic"]["Height"]
-    length = schem["Schematic"]["Length"]
-
-
-    # list of positions of all blocks in the format (x, y, z)
-    # (using the same seed to get original position blocks were placed in)
-    block_positions = shuffle_pos(width, height, length, SEED)
-
+    # take the values in data to get the corresponding block 
     val_to_block = {v: k for k, v in palette.items()}
-    # map pos to value in original byte array 
-    pos_to_index = {pos : i for i, pos in enumerate(block_positions)}     
 
     
-    byte_array = [-1] * len(block_positions)
+    # get the size stored in the first [FILE_START] blocks of the file  
+    size_in_blocks = []
+    for byte in data[:FILE_START]:  
+        block = val_to_block[byte % 256]
+        size_in_blocks.append(BLOCKS_TO_BYTES[block])
+    total_bytes = get_file_size(size_in_blocks)
 
 
-    # convert values from block array to byte array 
-    for i, byte in enumerate(data):
+    # convert indices to block array to byte array 
+    byte_array = []
+    for byte in data[FILE_START:]:
         # Byte objects in the data array are signed integers from -128 to 127, but the array is indexed 0-255
         block = val_to_block[byte % 256]
-        if block not in BLOCKS_TO_BYTES:
-            continue
-        pos = get_pos(i, width, height, length)
-        index = pos_to_index[pos]
-        byte_array[index] = BLOCKS_TO_BYTES[block]
+        # don't include extranneous blocks
+        if block in BLOCKS_TO_BYTES:
+            byte_array.append(BLOCKS_TO_BYTES[block])
 
-    # for random scattered blocks, read in the full array then create a new one without the extraneous blocks
-    temp = []
-    for byte in byte_array:
-        if byte > -1:
-            temp.append(byte)
-    byte_array = temp
-
-    total_bytes = get_file_size(byte_array[:FILE_START])
+        # stop if end of file reached (there are likely extra blocks at the end that aren't part of the file)
+        if len(byte_array) >= 2 * total_bytes:
+            break
 
     # convert back to byte values
     temp = []
-    for i in range(FILE_START, FILE_START + total_bytes * 2, 2):
+    for i in range(0, len(byte_array), 2):
         temp.append(16 * byte_array[i] + byte_array[i + 1])
     byte_array = temp
 
@@ -185,24 +167,6 @@ def get_file_size(bits):
     for i, val in enumerate(bits):
         total += 16 ** i * val
     return total
-
-
-def shuffle_pos(width, height, length, seed):
-    pos = []
-    for x in range(width):
-        for y in range(height):
-            for z in range(length):
-                pos.append((x, y, z))
-    random.Random(seed).shuffle(pos)
-    return pos 
-
-
-def get_pos(index, width, height, length):
-    # blocks in the schematic are read in the order: x, z, y (all in the positive direction)
-    x = index % width 
-    z = (index // width) % length
-    y = index // (width * length)
-    return (x, y, z)  
 
 
 if __name__ == "__main__":
