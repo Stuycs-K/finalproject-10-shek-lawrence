@@ -79,3 +79,7 @@ For some reason, the number of bytes read from a schematic file is greater than 
 ### 2025-06-01 - Incorporating random blocks
 - included random extraneous blocks within the schematic
 	- seems to not work sometimes for larger files
+
+### 2025-06-02 - Fixed errors
+- random block encode/decode working with key shuffled block order
+- worked on presentation
