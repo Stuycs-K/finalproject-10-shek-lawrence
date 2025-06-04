@@ -83,3 +83,6 @@ For some reason, the number of bytes read from a schematic file is greater than 
 ### 2025-06-02 - Fixed errors
 - random block encode/decode working with key shuffled block order
 - worked on presentation
+
+### 2025-06-03 - Presentation done
+- finished presentation (video and written)
