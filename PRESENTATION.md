@@ -39,10 +39,12 @@ I encoded blocks in the order *x, z, y*, all in the positive direction. The orde
 Since the number of bytes in a file doesn't always fill a complete cubic shape though, there are often missing blocks at the end of the file, which allow us to easily determine the order in which the blocks were placed. 
 
 ![xyz cube](images/image-4.png)
+
 *^ x-y-z order* (block layers piled horizontally)
 
 
 ![xzy cube](images/image-5.png)
+
 *^ x-z-y order* (block layers piled vertically)
 
 To fix this, I appended random blocks to the end of the schematic to fill up the remaining space. 
